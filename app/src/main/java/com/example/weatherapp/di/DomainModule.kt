@@ -26,9 +26,11 @@ class DomainModule {
 
     @Provides
     fun providesGetWeatherForFiveDaysUseCase(
-        repository: WeatherRepository
+        repository: WeatherRepository,
+        getCurrentLocationManager: GetCurrentLocationManager,
     ): GetWeatherForFiveDaysUseCase = DefaultGetWeatherForFiveDaysUseCase(
-        repository = repository
+        repository = repository,
+        getCurrentLocationManager = getCurrentLocationManager
     )
 
 }

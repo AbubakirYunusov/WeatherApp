@@ -59,11 +59,14 @@ dependencies {
     // Lottie animation
     implementation("com.airbnb.android:lottie-compose:6.3.0")
 
+    //ImmutableList
+    implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.5")
+
     // UI
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.32.0")
 
     // Location Services
-    implementation ("com.google.android.gms:play-services-location:21.1.0")
+    implementation("com.google.android.gms:play-services-location:21.1.0")
 
     //Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")

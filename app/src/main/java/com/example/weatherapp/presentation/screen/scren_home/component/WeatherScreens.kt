@@ -5,24 +5,30 @@ import android.icu.text.SimpleDateFormat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weatherapp.R
 import com.example.weatherapp.presentation.components.WeatherLottieAnimation
-import com.example.weatherapp.presentation.models.models_current_weather.WeatherPresentationModel
 import com.example.weatherapp.presentation.screen.scren_home.MainScreenUiState
+import com.example.weatherapp.presentation.theme.dp12
+import com.example.weatherapp.presentation.theme.dp8
 import java.time.LocalDate
 import java.util.Date
 
@@ -30,16 +36,17 @@ import java.util.Date
 @Composable
 fun LoadedWeatherScreens(
     loadedUiState: MainScreenUiState.Success,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onNavigateToMore: () -> Unit,
 ) {
-    val cityName = loadedUiState.weatherPresentationModel.cityName
-    val countryName = loadedUiState.weatherPresentationModel.sys.country
+    val cityName = loadedUiState.currentWeather.cityName
+    val countryName = loadedUiState.currentWeather.sys.country
     val sdf = SimpleDateFormat("hh:mm")
     val currentData = sdf.format(Date())
     val currentDayName = LocalDate.now().dayOfWeek.name
-    val temperature = (loadedUiState.weatherPresentationModel.weatherMain.weatherTemperature - 273)
+    val temperature = (loadedUiState.currentWeather.weatherMain.weatherTemperature - 273)
     val currentWeatherStatus =
-        loadedUiState.weatherPresentationModel.currentWeather.firstOrNull()?.weatherMain.orEmpty()
+        loadedUiState.currentWeather.currentWeather.firstOrNull()?.weatherMain.orEmpty()
 
     Box(
         modifier = modifier
@@ -90,10 +97,58 @@ fun LoadedWeatherScreens(
                 color = Color.White
             )
             WeatherInfoBlock(
-                humidity = loadedUiState.weatherPresentationModel.weatherMain.weatherHumidity,
-                windSpeed = loadedUiState.weatherPresentationModel.weatherWindInfo.windSpeed,
-                pressure = loadedUiState.weatherPresentationModel.weatherMain.weatherPressure,
+                humidity = loadedUiState.currentWeather.weatherMain.weatherHumidity,
+                windSpeed = loadedUiState.currentWeather.weatherWindInfo.windSpeed,
+                pressure = loadedUiState.currentWeather.weatherMain.weatherPressure,
             )
+            WeatherForecastBlock(
+                loadedUiState = loadedUiState,
+                onNavigateToMore = onNavigateToMore,
+            )
+        }
+    }
+}
+
+@Composable
+fun WeatherForecastBlock(
+    loadedUiState: MainScreenUiState.Success,
+    modifier: Modifier = Modifier,
+    onNavigateToMore: () -> Unit,
+) {
+    Column(
+        modifier = modifier
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = "В этод день",
+                color = Color.White,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(start = dp12, top = dp8)
+            )
+            IconButton(
+                onClick = { onNavigateToMore() },
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.more_svgrepo_com),
+                    contentDescription = null,
+                    tint = Color.White,
+                )
+            }
+        }
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(dp8),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = dp12)
+        ) {
+            items(
+                loadedUiState.weatherDayInHours.list
+            ) { forecast ->
+                WeatherItem(loadedUiState = forecast)
+            }
         }
     }
 }
@@ -103,11 +158,11 @@ fun WeatherStateLottie(
     loadedUiState: MainScreenUiState.Success,
     modifier: Modifier = Modifier,
 ) {
-    loadedUiState.weatherPresentationModel.currentWeather.firstOrNull()?.apply {
+    loadedUiState.currentWeather.currentWeather.firstOrNull()?.apply {
         if (isClear) {
             WeatherLottieAnimation(
                 modifier = modifier,
-                rawFile = R.raw.splash
+                rawFile = R.raw.sunny
             )
         } else if (isCloudy) {
             WeatherLottieAnimation(
@@ -120,16 +175,5 @@ fun WeatherStateLottie(
                 rawFile = R.raw.mist
             )
         }
-    }
-}
-
-
-@Preview
-@Composable
-fun LoadedWeatherScreensPreview() {
-    MaterialTheme {
-        LoadedWeatherScreens(
-            loadedUiState = MainScreenUiState.Success(WeatherPresentationModel.unknown)
-        )
     }
 }

@@ -1,4 +1,5 @@
 package com.example.weatherapp.presentation.navigation
+
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -12,6 +13,7 @@ import com.example.weatherapp.presentation.screen.scren_splash.SplashScreen
 @Composable
 fun AppNavGraph(
     onBackPressedCallBack: () -> Unit,
+    onNavigateToMore: () -> Unit,
 ) {
 
     val navController: NavHostController = rememberNavController()
@@ -26,7 +28,8 @@ fun AppNavGraph(
             MainScreen(
                 uiStateFlow = viewModel.uiState,
                 onBackPressedCallBack = onBackPressedCallBack,
-                getCurrentWeather = {}
+                getCurrentWeather = {},
+                onNavigateToMore = {}
             )
         }
         composable(Screens.Splashscreen.route) {

@@ -1,7 +1,7 @@
 package com.example.weatherapp.data.remote
 
 import com.example.weatherapp.data.models.models_current_weather.WeatherDataModel
-import com.example.weatherapp.data.models.models_for_fifteen_days.WeatherHoursListMode
+import com.example.weatherapp.data.models.models_for_fifteen_days.WeatherForFiveDaysResponseDataModel
 import com.example.weatherapp.data.utils.Constants.GET_CURRENT_DATA
 import com.example.weatherapp.data.utils.Constants.GET_WEATHER_FOR_5_DAYS_EVERY_THREE_HOURS
 import retrofit2.Response
@@ -20,6 +20,6 @@ interface WeatherService {
     suspend fun getWeatherForFiveDays(
         @Query("lat") latitude: Double,
         @Query("lon") longitude: Double,
-    ) : Response<WeatherHoursListMode>
+    ) : Response<WeatherForFiveDaysResponseDataModel>
 
 }

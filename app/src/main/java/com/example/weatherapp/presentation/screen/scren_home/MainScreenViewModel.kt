@@ -10,17 +10,18 @@ import com.example.weatherapp.domain.use_cases.for_fifteen_days.GetWeatherForFiv
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.net.UnknownHostException
 import javax.inject.Inject
 
 @HiltViewModel
 class MainScreenViewModel @Inject constructor(
     private val getCurrentWeatherUseCase: GetCurrentWeatherUseCase,
-    private val getWeatherForFiveDaysUseCase: GetWeatherForFiveDaysUseCase,
+    private val getForecastData: GetWeatherForFiveDaysUseCase,
 ) : ViewModel() {
 
     private val _uiState: MutableStateFlow<MainScreenUiState> =
@@ -33,69 +34,26 @@ class MainScreenViewModel @Inject constructor(
         getCurrentWeatherData()
     }
 
-    fun getCurrentWeatherData() {
+    private fun getCurrentWeatherData() {
         viewModelScope.launch(handle + Dispatchers.IO) {
             _uiState.tryEmit(MainScreenUiState.Loading)
-            val response = getCurrentWeatherUseCase()
-            val result = getWeatherForFiveDaysUseCase()
-            when (result.status) {
-                ResponseStatus.SUCCESS -> {
-                    result.data?.let { weather ->
-                        _uiState.tryEmit(
-                            MainScreenUiState.Success(
-                                weatherHoursPresentationModel = weather.map { it.toUi() }
-                            )
-                        )
-                    }
-                }
-
-                ResponseStatus.ERROR -> {
-                    response.errorThrowable?.message?.let { massage ->
-                        if (response.errorThrowable == UnknownHostException()) {
-                            _uiState.tryEmit(
-                                MainScreenUiState.Error(
-                                    massage = massage,
-                                    isErrorWithConnection = true,
-                                )
-                            )
-                        } else {
-                            _uiState.tryEmit(
-                                MainScreenUiState.Error(
-                                    massage = massage,
-                                    isErrorWithConnection = false,
-                                )
-                            )
-                        }
-                    }
-                }
+            val currentWeatherDeffered = async {
+                getCurrentWeatherUseCase()
             }
-
-            when (response.status) {
-                ResponseStatus.SUCCESS -> {
-                    response.data?.let { weather ->
-                        _uiState.tryEmit(
+            val forecastWeatherDeffered = async {
+                getForecastData()
+            }
+            val responseCurrentWeather = currentWeatherDeffered.await()
+            val responseForecastWeather = forecastWeatherDeffered.await()
+            if (responseCurrentWeather.status == ResponseStatus.SUCCESS &&
+                responseForecastWeather.status == ResponseStatus.SUCCESS
+            ) {
+                responseCurrentWeather.data?.let { currentWeather ->
+                    responseForecastWeather.data?.let { forecastWeather ->
+                        _uiState.update {
                             MainScreenUiState.Success(
-                                weatherPresentationModel = weather.toPresentation(),
-                            )
-                        )
-                    }
-                }
-
-                ResponseStatus.ERROR -> {
-                    response.errorThrowable?.message?.let { massage ->
-                        if (response.errorThrowable == UnknownHostException()) {
-                            _uiState.tryEmit(
-                                MainScreenUiState.Error(
-                                    massage = massage,
-                                    isErrorWithConnection = true,
-                                )
-                            )
-                        } else {
-                            _uiState.tryEmit(
-                                MainScreenUiState.Error(
-                                    massage = massage,
-                                    isErrorWithConnection = false,
-                                )
+                                currentWeather = currentWeather.toPresentation(),
+                                weatherDayInHours = forecastWeather.toUi()
                             )
                         }
                     }

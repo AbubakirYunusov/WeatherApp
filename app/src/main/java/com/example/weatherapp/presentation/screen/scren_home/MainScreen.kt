@@ -5,6 +5,7 @@ import androidx.activity.addCallback
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
@@ -25,6 +26,7 @@ fun MainScreen(
     uiStateFlow: StateFlow<MainScreenUiState>,
     getCurrentWeather: () -> Unit,
     onBackPressedCallBack: () -> Unit,
+    onNavigateToMore: () -> Unit,
 ) {
 
     val darkTheme: Boolean = isSystemInDarkTheme()
@@ -33,17 +35,13 @@ fun MainScreen(
     val backgroundApp = if (darkTheme) BackgroundDefaultLight
     else BackgroundDefaultLight
 
-    SideEffect {
-        systemUiController.setStatusBarColor(backgroundApp)
-        systemUiController.setNavigationBarColor(backgroundApp)
-    }
-
     when (val mainUiStateUiFlow = uiStateFlow.collectAsState().value) {
         is MainScreenUiState.Loading -> LoadingScreen()
         is MainScreenUiState.Success -> {
             LoadedMainScreen(
                 uiState = mainUiStateUiFlow,
-                onBackPressedCallBack = {}
+                onBackPressedCallBack = onBackPressedCallBack,
+                onNavigateToMore = onNavigateToMore,
             )
         }
 
@@ -54,6 +52,12 @@ fun MainScreen(
             tryAgainCallback = getCurrentWeather, massage = mainUiStateUiFlow.massage
         )
     }
+
+    SideEffect {
+        systemUiController.setStatusBarColor(backgroundApp)
+        systemUiController.setNavigationBarColor(backgroundApp)
+    }
+
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -61,7 +65,11 @@ fun MainScreen(
 fun LoadedMainScreen(
     uiState: MainScreenUiState.Success,
     onBackPressedCallBack: () -> Unit,
+    onNavigateToMore: () -> Unit,
 ) {
+
+    val systemUiController = rememberSystemUiController()
+    val colorBackground = MaterialTheme.colorScheme.background
 
     val backStackDispatcher = LocalOnBackPressedDispatcherOwner.current
     backStackDispatcher?.onBackPressedDispatcher?.addCallback {
@@ -75,7 +83,14 @@ fun LoadedMainScreen(
 
         LoadedWeatherScreens(
             loadedUiState = uiState,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
+            onNavigateToMore = onNavigateToMore
         )
     }
+
+    SideEffect {
+        systemUiController.setStatusBarColor(colorBackground)
+        systemUiController.setNavigationBarColor(colorBackground)
+    }
+
 }

@@ -1,7 +1,8 @@
 package com.example.weatherapp.presentation.screen.scren_home
 
 import com.example.weatherapp.presentation.models.models_current_weather.WeatherPresentationModel
-import com.example.weatherapp.presentation.models.models_for_fifteen_days.WeatherCloudUiModel
+import com.example.weatherapp.presentation.models.models_for_fifteen_days.WeatherForFiveDaysResponseUiModel
+import kotlinx.collections.immutable.ImmutableList
 import javax.annotation.concurrent.Immutable
 
 @Immutable
@@ -9,8 +10,8 @@ sealed class MainScreenUiState {
 
     @Immutable
     data class Success(
-        val weatherPresentationModel: WeatherPresentationModel = WeatherPresentationModel.unknown,
-        val weatherHoursPresentationModel: List<WeatherCloudUiModel> = emptyList()
+        val currentWeather: WeatherPresentationModel,
+        val weatherDayInHours: WeatherForFiveDaysResponseUiModel
 
     ) : MainScreenUiState()
 
