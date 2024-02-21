@@ -2,18 +2,20 @@ package com.example.weatherapp.data.repository
 
 import com.example.weatherapp.data.base.BaseDataSource
 import com.example.weatherapp.data.base.model.ResultStatus
-import com.example.weatherapp.data.mappers.toDomain
-import com.example.weatherapp.data.models.models_for_fifteen_days.WeatherHoursListMode
+import com.example.weatherapp.data.mappers.waather_for_five.toDomain
+import com.example.weatherapp.data.mappers.weather.toDomain
 import com.example.weatherapp.data.remote.WeatherService
 import com.example.weatherapp.domain.models.models_current_weather.WeatherDomainModel
-import com.example.weatherapp.domain.models.models_for_fifteen_days.WeatherHoursDomainListModel
+import com.example.weatherapp.domain.models.models_for_fifteen_days.CoordDomainModel
+import com.example.weatherapp.domain.models.models_for_fifteen_days.WeatherCloudDomainModel
+import com.example.weatherapp.domain.models.models_for_fifteen_days.WeatherForFiveDaysResponseDomainModel
 import com.example.weatherapp.domain.repository.WeatherRepository
 import javax.inject.Inject
 
 class DefaultWeatherRepository @Inject constructor(
     private val service: WeatherService
 
-) : WeatherRepository , BaseDataSource(){
+) : WeatherRepository, BaseDataSource() {
 
     override suspend fun getCurrentWeatherData(
         latitude: Double,
@@ -35,11 +37,17 @@ class DefaultWeatherRepository @Inject constructor(
     override suspend fun getWeatherForFiveDays(
         latitude: Double,
         longitude: Double
-    ): WeatherHoursDomainListModel {
-        return service.getWeatherForFiveDays(
-            latitude = latitude,
-            longitude = longitude,
-        ).body()?.toDomain() ?: WeatherHoursListMode.unknown.toDomain()
+    ): ResultStatus<List<WeatherCloudDomainModel>> {
+        val response = invokeResponseRequest {
+            service.getWeatherForFiveDays(
+                latitude = latitude,
+                longitude = longitude,
+            )
+        }
+        return ResultStatus(
+            status = response.status,
+            errorThrowable = response.errorThrowable,
+            data = response.data?.list?.map { it.toDomain() }
+        )
     }
-
 }
